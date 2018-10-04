@@ -1,0 +1,7 @@
+# ignoring the compiled python file
+*.pyc
+
+.spyproject/
+
+# ignoring the output folder (for test producing heavy files)
+*/output/
