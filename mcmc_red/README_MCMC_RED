@@ -1,0 +1,18 @@
+MCMC_RED
+========
+This module gathers some handy functions in order to fit experimental data with model functions.
+The "mcmc_red_test" contains several test scripts to check if the different functions runs properly. Can also be used as a crude example of data analysis.
+
+Required modules
+================
+- emcee
+- corner
+
+Suggestions
+===========
+Download the module "tqdm", which gives you the ability to display some nice progress bar, and tweak the "ensemble.py" file from the "emcee" module in order to have a progress bar during an MCMC analysis !
+
+Contact
+=======
+Dimitri Misiak
+misiak@ipnl.in2p3.fr
