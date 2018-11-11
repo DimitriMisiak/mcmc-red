@@ -20,7 +20,7 @@ import scipy.optimize as op
 ### importing the omnitool package functions
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
-from general import explore_plot
+from omnitool import explore_plot
 from mcmc import get_mcmc_sampler, mcmc_results, mcmc_sampler
 from ptmcmc import get_ptmcmc_sampler, ptmcmc_results, ptmcmc_sampler, ptmcmc_plots, save_ptmcmc_sampler
 from models import model_2exp
