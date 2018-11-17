@@ -142,6 +142,126 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
     return sampler
 
 
+def mcmc_sampler_multi(lnpostfn, bounds, nsteps, nwalkers=None,
+                 path='mcmc_sampler/autosave', save=True,
+                 condi=None, threads=1, scale='linear'):
+    """ MCMC Analysis routine. Log scale seach in parameter space.
+
+    Parameters
+    ----------
+    lnpostfn : function
+        Loglikelihood of Minimized function. See emcee module for more info.
+    bounds: array_like of tuple of 2 floats
+        Starting parameter set for MCMC analysis.
+    nsteps : int
+        Number of steps.
+    nwalkers : None or int, optional
+        Numbers of walkers. Should not be inferior to 2 times
+        the number of parameters. By default, set to 10 times
+        the number of parameters.
+    savename : str, optional
+        Path the save directory
+    threads : int
+        Number of threads for the multiprocessing.
+    scale : str, optional
+        Scale for the spreading of the initial markov chains.
+        Can be either 'linear' or 'log'.
+
+    Returns
+    -------
+    sampler : emcee.ensemble.EnsembleSampler
+        Object manipulated by the mcmc. Has several class attributes which
+        contain the Markov chain, the lnprob list, and other characteristics
+        of the mcmc analysis.
+    """
+    try:
+        os.makedirs(path)
+    except OSError:
+        if not os.path.isdir(path):
+            raise
+
+    # extracts the sup bounds and the inf bounds
+    bounds = list(bounds)
+    binf = list()
+    bsup = list()
+    for b in bounds:
+        inf, sup = b
+        binf.append(inf)
+        bsup.append(sup)
+    binf = np.array(binf)
+    bsup = np.array(bsup)
+
+    # additionnal constrain as function of the parameters
+    if condi == None:
+        condi = lambda p: True
+
+    # number of parameters/dimensions
+    ndim = len(bounds)
+
+    # default nwalkers
+    if nwalkers == None:
+        nwalkers = 10 * ndim
+
+    # walkers are uniformly spread in the parameter space
+    # according to the search scale
+    pos = list()
+    for n in xrange(nwalkers):
+        accept = False
+        while not accept:
+            if scale == 'linear':
+                new_pos = [
+                    np.random.uniform(low=l, high=h) for l,h in zip(binf, bsup)
+                ]
+                accept = condi(new_pos)
+            elif scale == 'log':
+                new_pos = [
+                    10**np.random.uniform(low=l, high=h) for l,h in zip(np.log10(binf), np.log10(bsup))
+                ]
+                accept = condi(new_pos)
+            else:
+                raise Exception('Scale parameter not set correctly. Should be \'linear\' or \'log\'')
+        pos.append(new_pos)
+
+    # MCMC analysis
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnpostfn, threads=threads)
+    sampler.run_mcmc(pos, nsteps, rstate0=np.random.get_state())
+
+
+    # saving the markov chain
+    with file(os.path.join(path,'chain.dat'), 'w') as outfile:
+        outfile.write('# Array shape: {0}\n'.format(sampler.chain.shape))
+        for data_slice in sampler.chain:
+            np.savetxt(outfile, data_slice)
+            outfile.write('# Next walker\n')
+
+    # saving the lnprob
+    lnprob = sampler._lnprob
+    with file(os.path.join(path,'lnprob.dat'), 'w') as outfile:
+        outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
+        np.savetxt(outfile, lnprob)
+
+    # saving the acceptance fraction
+    acc = sampler.acceptance_fraction
+    with file(os.path.join(path,'acceptance.dat'), 'w') as outfile:
+        outfile.write('# Array shape: {0}\n'.format(acc.shape))
+        np.savetxt(outfile, acc)
+
+    entries = ('source', 'bounds',
+               'dim', 'iterations', 'nwalkers')
+
+    try:
+        source = __main__.__file__
+    except:
+        source = os.getcwd()
+
+    values = (source, bounds,
+              sampler.dim, sampler.iterations, sampler.k)
+
+    savetxt(entries, values, fpath=os.path.join(path ,'log.dat'))
+
+    return sampler
+
+
 def get_mcmc_sampler(sdir):
     """ Read the sampler info from disk created by mcmc_sampler.
 
@@ -190,7 +310,30 @@ def get_mcmc_sampler(sdir):
     return logd, chain, lnprob, acc
 
 
-def mcmc_results(ndim, chain, lnprob, acc, labels):
+def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None):
+    """ Plot the results of the mcmc analysis, and return these results.
+
+    Parameters
+    ----------
+    .
+    .
+    .
+    scale : str, optional
+        Scale for the spreading of the initial markov chains.
+        Can be either 'linear' or 'log'.
+    savedir : str, optional
+        If given, save the figure to the savedir. By default, set to None,
+        figures are not saved.
+
+    Returns
+    -------
+    xopt : numpy.ndarray
+        Optimal parameters, minimising the loglikelihood.
+    inf : numpy.ndarray
+        Lower 1-sigma bounds for the optimal parameters.
+    sup : numpy.ndarray
+        Upper 1-sigma bounds for the optimal parameters.
+    """
     # acceptance fraction cut
     tracc = (0.2, 0.8)
     ind = np.where(np.logical_or(acc < tracc[0], acc > tracc[1]))
@@ -201,23 +344,29 @@ def mcmc_results(ndim, chain, lnprob, acc, labels):
 #    print 'shape chain:', chain.shape
 #    print 'shape lnprob:', lnprob.shape
 
-    plt.figure('Acceptance fraction')
-    plt.plot(acc)
+    fig_acceptance = plt.figure('ACCEPTANCE FRACTION')
+    plt.bar(np.arange(acc.shape[0]), acc)
     for thresh in tracc:
         plt.axhline(thresh, color='r', ls='--')
+    plt.xlabel('Marker Chain Index')
+    plt.ylabel('Acceptance fraction')
+    plt.ylim(0., 1.)
+    plt.tight_layout()
 
-    # CONVERGENCE plot
-    fig, ax = plt.subplots(ndim+1, 1, sharex=True, figsize=(7, 8),
+    ### CONVERGENCE plot
+    fig_convergence, ax = plt.subplots(ndim+1, 1, sharex=True, figsize=(7, 8),
                            num='CONVERGENCE')
     ax[-1].set_xlabel('Iterations')
     ax[-1].set_yscale('log')
+    ax[-1].set_xscale('log')
     for a, l in zip(ax, labels + ('lnprob',)):
         a.set_ylabel(l)
         a.grid()
 
     # loop over the parameters
     for n in range(ndim):
-
+        if scale == 'log' :
+            ax[n].set_yscale('log')
         if len(bam) > 0:
             # plotting the chains discarded by the acceptance cut
             ax[n].plot(bam[:, :, n].T, color='r', lw=1., alpha=0.4)
@@ -278,7 +427,7 @@ def mcmc_results(ndim, chain, lnprob, acc, labels):
         # plotting converged chain lnprob
         ax[-1].plot(ite_ok, -lnk_ok.T, color='b')
 
-    fig.tight_layout(h_pad=0.0)
+    fig_convergence.tight_layout(h_pad=0.0)
 
     samples = reduce(lambda a,b: np.append(a,b, axis=0), chain_ok_list)
 
@@ -287,8 +436,8 @@ def mcmc_results(ndim, chain, lnprob, acc, labels):
     xopt = chain[best_ind]
 
 
-    # checking the correlation
-    fig, ax = plt.subplots(2, sharex=True)
+    ### CORRELATION plot
+    fig_correlation, ax = plt.subplots(2, sharex=True, num='CORRELATION')
     for a in ax:
         a.grid()
         a.set_xscale('log')
@@ -302,14 +451,29 @@ def mcmc_results(ndim, chain, lnprob, acc, labels):
         ax[1].plot(funk)
 
 
-    # CORNER plot
+    ### CORNER plot
 #    aux_fig, ax = plt.subplots(ndim,ndim,num='CORNER', figsize=(ndim,ndim))
-    fig = corner.corner(samples, bins=50, smooth=1,
-                        labels=['{}'.format(l) for l in labels],
-                        quantiles=[0.16, 0.5, 0.84], show_titles=True,
-                        truths=xopt,
-                        title_kwargs={"fontsize": 12})#, fig=aux_fig)
-    fig.tight_layout()
+    if scale == 'linear':
+        fig_corner = corner.corner(
+                samples,
+                bins=50, smooth=1,
+                labels=labels,
+                quantiles=[0.16, 0.5, 0.84], show_titles=True,
+                truths=xopt,
+                title_kwargs={"fontsize": 12}
+        )
+
+    elif scale == 'log':
+        fig_corner = corner.corner(
+                np.log10(samples),
+                bins=50, smooth=1,
+                labels=['log({})'.format(l) for l in labels],
+                quantiles=[0.16, 0.5, 0.84], show_titles=True,
+                truths=np.log10(xopt),
+                title_kwargs={"fontsize": 12}
+        )
+
+#    fig_corner.tight_layout()
 
     # quantiles of the 1d-histograms
     inf, med, sup = np.percentile(samples, [16, 50, 84], axis=0)
@@ -325,8 +489,14 @@ def mcmc_results(ndim, chain, lnprob, acc, labels):
                 inf[n], sup[n], xopt[n]
         )
     if not np.all(np.logical_and(inf<xopt, xopt<sup)):
-        print 'Good luck fixing that :P'
+        print 'Optimal parameters out the 1-sigma range ! Good luck fixing that :P'
 
     print 'Chi2 = {}'.format(best_chi2)
+
+    if savedir is not None:
+        fig_acceptance.savefig(savedir+'/acceptance.png')
+        fig_convergence.savefig(savedir+'/convergence.png')
+        fig_correlation.savefig(savedir+'/correlation.png')
+        fig_corner.savefig(savedir+'/corner.png')
 
     return xopt, inf, sup

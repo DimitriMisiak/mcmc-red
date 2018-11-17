@@ -22,7 +22,6 @@ sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
 from omnitool import explore_plot
 from mcmc import get_mcmc_sampler, mcmc_results, mcmc_sampler
-from ptmcmc import get_ptmcmc_sampler, ptmcmc_results, ptmcmc_sampler, ptmcmc_plots, save_ptmcmc_sampler
 from models import model_2exp
 from psd import psd
 from chi2 import chi2_freq, opt_chi2_freq, chi2_simple

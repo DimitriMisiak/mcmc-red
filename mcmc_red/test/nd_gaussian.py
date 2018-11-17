@@ -54,7 +54,7 @@ sampler_path = 'mcmc_sampler/autosave'
 
 # running the mcmc analysis
 bounds = ((-20, 20),) * ndim
-sampler = mcmc_sampler(chi2, bounds, nsteps=10000, path=sampler_path)
+sampler = mcmc_sampler(chi2, bounds, nsteps=1000, path=sampler_path)
 
 #    # loading the mcmc results
 logd, chain, lnprob, acc = get_mcmc_sampler(sampler_path)

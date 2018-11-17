@@ -1,18 +1,18 @@
-2018-11-11 13:00
+2018-11-17 12:24
 
 
 source =
-/home/misiak/Scripts/mcmc-red/mcmc_red/test/nd_gaussian_logscale.py
+/home/misiak/Scripts/mcmc-red/mcmc_red/test/nd_gaussian_multiprocessing.py
 
 bounds =
-[(0, 1000000.0), (0, 1000000.0), (0, 1000000.0)]
+[(1e-07, 10.0), (1e-07, 10.0), (1e-07, 10.0), (1e-07, 10.0)]
 
 dim =
-3
+4
 
 iterations =
-10000
+1000
 
 nwalkers =
-30
+40
 
