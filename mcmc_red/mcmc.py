@@ -338,11 +338,11 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
     tracc = (0.2, 0.8)
     ind = np.where(np.logical_or(acc < tracc[0], acc > tracc[1]))
     bam = chain[ind]
-#    chain = np.delete(chain, ind, axis=0)
-#    lnprob = np.delete(lnprob, ind, axis=0)
+    chain = np.delete(chain, ind, axis=0)
+    lnprob = np.delete(lnprob, ind, axis=0)
 
-#    print 'shape chain:', chain.shape
-#    print 'shape lnprob:', lnprob.shape
+    print 'shape chain:', chain.shape
+    print 'shape lnprob:', lnprob.shape
 
     fig_acceptance = plt.figure('ACCEPTANCE FRACTION')
     plt.bar(np.arange(acc.shape[0]), acc)
@@ -360,6 +360,7 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
     ax[-1].set_yscale('log')
     ax[-1].set_xscale('log')
     for a, l in zip(ax, labels + ('lnprob',)):
+
         a.set_ylabel(l)
         a.grid()
 
@@ -473,7 +474,7 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
                 title_kwargs={"fontsize": 12}
         )
 
-#    fig_corner.tight_layout()
+    fig_corner.tight_layout()
 
     # quantiles of the 1d-histograms
     inf, med, sup = np.percentile(samples, [16, 50, 84], axis=0)

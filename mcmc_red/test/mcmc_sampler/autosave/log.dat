@@ -1,18 +1,18 @@
-2018-11-17 12:24
+2019-05-10 18:07
 
 
 source =
-/home/misiak/Scripts/mcmc-red/mcmc_red/test/nd_gaussian_multiprocessing.py
+/home/misiak/Scripts/mcmc-red/mcmc_red/test/2d_gaussian_testcc.py
 
 bounds =
-[(1e-07, 10.0), (1e-07, 10.0), (1e-07, 10.0), (1e-07, 10.0)]
+[(-20, 20), (-20, 20)]
 
 dim =
-4
+2
 
 iterations =
 1000
 
 nwalkers =
-40
+20
 

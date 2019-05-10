@@ -101,7 +101,7 @@ def loglike(x):
         return -np.inf
 
 # running the mcmc analysis
-sampler = mcmc_sampler_multi(loglike, bounds, nsteps=1000, path=sampler_path, threads=1, scale=SCALE)
+sampler = mcmc_sampler_multi(loglike, bounds, nsteps=1000, path=sampler_path, threads=2, scale=SCALE)
 #nwalkers=None
 #nsteps=10000
 #threads=4
