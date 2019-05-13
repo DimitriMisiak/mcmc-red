@@ -100,16 +100,22 @@ def loadtxt(fname):
 
 
 if __name__ == '__main__':
-
-    from general import choose_dir
-
-    SAVEPATH = path.join(choose_dir(), 'savesys test')
-    LABELS = ('A', 'B', 'C', 'D', 'E')
-    VALUES = (1,2,3,4,5)
-
-    savetxt(LABELS, VALUES, fpath=SAVEPATH, header='This is a test file !')
-
-    lab, val = loadtxt(SAVEPATH)
-
-    print lab
-    print val
+    
+    try:
+        
+        from omnitool.general import choose_dir
+    
+        SAVEPATH = path.join(choose_dir(), 'savesys test')
+        LABELS = ('A', 'B', 'C', 'D', 'E')
+        VALUES = (1,2,3,4,5)
+    
+        savetxt(LABELS, VALUES, fpath=SAVEPATH, header='This is a test file !')
+    
+        lab, val = loadtxt(SAVEPATH)
+    
+        print(lab)
+        print(val)
+        
+    except:
+        
+        print('TKinter might surely be missing!')

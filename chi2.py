@@ -91,7 +91,9 @@ def opt_chi2_freq(fft_data, model_funk, psd_err, fs, bounds, debug=False):
     if debug == True:
 
         comm = np.linspace(bounds[0], bounds[1], 100)
-        loot = map(aux, comm)
+#        loot = map(aux, comm)
+        loot = [aux(c) for c in comm]
+        
         xmin = comm[np.argmin(loot)]
 
         plt.figure('debug stream_chi2')

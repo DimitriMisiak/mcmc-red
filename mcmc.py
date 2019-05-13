@@ -93,7 +93,7 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
 
     # walkers are uniformly spread in the parameter space
     pos = list()
-    for n in xrange(nwalkers):
+    for n in range(nwalkers):
         accept = False
         while not accept:
             new_pos = [
@@ -108,7 +108,7 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
 
 
     # saving the markov chain
-    with file(os.path.join(path,'chain.dat'), 'w') as outfile:
+    with open(os.path.join(path,'chain.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(sampler.chain.shape))
         for data_slice in sampler.chain:
             np.savetxt(outfile, data_slice)
@@ -116,13 +116,13 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
 
     # saving the lnprob
     lnprob = sampler._lnprob
-    with file(os.path.join(path,'lnprob.dat'), 'w') as outfile:
+    with open(os.path.join(path,'lnprob.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
         np.savetxt(outfile, lnprob)
 
     # saving the acceptance fraction
     acc = sampler.acceptance_fraction
-    with file(os.path.join(path,'acceptance.dat'), 'w') as outfile:
+    with open(os.path.join(path,'acceptance.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(acc.shape))
         np.savetxt(outfile, acc)
 
@@ -205,7 +205,7 @@ def mcmc_sampler_multi(lnpostfn, bounds, nsteps, nwalkers=None,
     # walkers are uniformly spread in the parameter space
     # according to the search scale
     pos = list()
-    for n in xrange(nwalkers):
+    for n in range(nwalkers):
         accept = False
         while not accept:
             if scale == 'linear':
@@ -228,7 +228,7 @@ def mcmc_sampler_multi(lnpostfn, bounds, nsteps, nwalkers=None,
 
 
     # saving the markov chain
-    with file(os.path.join(path,'chain.dat'), 'w') as outfile:
+    with open(os.path.join(path,'chain.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(sampler.chain.shape))
         for data_slice in sampler.chain:
             np.savetxt(outfile, data_slice)
@@ -236,13 +236,13 @@ def mcmc_sampler_multi(lnpostfn, bounds, nsteps, nwalkers=None,
 
     # saving the lnprob
     lnprob = sampler._lnprob
-    with file(os.path.join(path,'lnprob.dat'), 'w') as outfile:
+    with open(os.path.join(path,'lnprob.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
         np.savetxt(outfile, lnprob)
 
     # saving the acceptance fraction
     acc = sampler.acceptance_fraction
-    with file(os.path.join(path,'acceptance.dat'), 'w') as outfile:
+    with open(os.path.join(path,'acceptance.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(acc.shape))
         np.savetxt(outfile, acc)
 
@@ -341,8 +341,8 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
     chain = np.delete(chain, ind, axis=0)
     lnprob = np.delete(lnprob, ind, axis=0)
 
-    print 'shape chain:', chain.shape
-    print 'shape lnprob:', lnprob.shape
+    print('shape chain:'), chain.shape
+    print('shape lnprob:'), lnprob.shape
 
     fig_acceptance = plt.figure('ACCEPTANCE FRACTION')
     plt.bar(np.arange(acc.shape[0]), acc)
@@ -391,7 +391,7 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
         try:
             burn = np.where(lnk <  lncut)[0][-1] + 100
         except:
-            print 'Could not apply convergence cut properly'
+            print('Could not apply convergence cut properly')
             burn = 0
         burnin_list.append(burn)
 
@@ -430,8 +430,9 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
 
     fig_convergence.tight_layout(h_pad=0.0)
 
-    samples = reduce(lambda a,b: np.append(a,b, axis=0), chain_ok_list)
-
+    # samples = reduce(lambda a,b: np.append(a,b, axis=0), chain_ok_list)
+    samples = np.vstack(chain_ok_list)
+    
     best_ind = np.unravel_index(lnprob.argmax(), lnprob.shape)
     best_chi2 = -2 * lnprob[best_ind]
     xopt = chain[best_ind]
@@ -480,19 +481,19 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
     inf, med, sup = np.percentile(samples, [16, 50, 84], axis=0)
 
     # Analysis end message
-    print "MCMC results :"
+    print("MCMC results :")
     for n in range(ndim):
-        print labels[n]+'= {:.2e} + {:.2e} - {:.2e}'.format(
+        print(labels[n]+'= {:.2e} + {:.2e} - {:.2e}'.format(
             med[n], sup[n]-med[n], med[n]-inf[n]
-        )
+        ))
     for n in range(ndim):
-        print labels[n]+'\in [{:.3e} , {:.3e}] with best at {:.3e}'.format(
+        print(labels[n]+'\in [{:.3e} , {:.3e}] with best at {:.3e}'.format(
                 inf[n], sup[n], xopt[n]
-        )
+        ))
     if not np.all(np.logical_and(inf<xopt, xopt<sup)):
-        print 'Optimal parameters out the 1-sigma range ! Good luck fixing that :P'
+        print('Optimal parameters out the 1-sigma range ! Good luck fixing that :P')
 
-    print 'Chi2 = {}'.format(best_chi2)
+    print('Chi2 = {}'.format(best_chi2))
 
     if savedir is not None:
         fig_acceptance.savefig(savedir+'/acceptance.png')

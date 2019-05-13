@@ -12,55 +12,63 @@ Author:
 import os
 import re
 import matplotlib.pyplot as plt
-import Tkinter as Tk
-import tkFileDialog
 import scipy.signal as sgl
 
+try:
+    import Tkinter as Tk
+    import tkFileDialog
+    
+    def choose_dir(initialdir=os.path.dirname(__file__)):
+        """Returns the directory path selected within an explorer.
+    
+        Parameters
+        ----------
+        initialdir : str
+            Initial path of the explorer. Default value set to the
+            directory of this script.
+    
+        Returns
+        -------
+        dirpath : str
+            Path of the selected directory.
+        """
+        root = Tk.Tk()
+        dirpath = tkFileDialog.askdirectory(
+            parent=root,
+            initialdir=initialdir
+        )
+        root.destroy()
+        return dirpath
+    
+    
+    def choose_files(initialdir=os.path.dirname(__file__)):
+        """Returns the path(s) of the files selected within an explorer.
+    
+        Parameters
+        ----------
+        initialdir : str
+            Initial path of the explorer. Default value set to the
+            directory of this script.
+    
+        Returns
+        -------
+        fpath : tuple
+            Tuple containing the absolute path(s) of the selected files.
+        """
+        root = Tk.Tk()
+        fpath = tkFileDialog.askopenfilenames(
+            parent=root,
+            initialdir=initialdir
+        )
+        root.destroy()
+        return fpath
+    
+except:
+    'Cannot import Tkinter'
+    
 
-def choose_dir(initialdir=os.path.dirname(__file__)):
-    """Returns the directory path selected within an explorer.
-
-    Parameters
-    ----------
-    initialdir : str
-        Initial path of the explorer. Default value set to the
-        directory of this script.
-
-    Returns
-    -------
-    dirpath : str
-        Path of the selected directory.
-    """
-    root = Tk.Tk()
-    dirpath = tkFileDialog.askdirectory(
-        parent=root,
-        initialdir=initialdir
-    )
-    root.destroy()
-    return dirpath
 
 
-def choose_files(initialdir=os.path.dirname(__file__)):
-    """Returns the path(s) of the files selected within an explorer.
-
-    Parameters
-    ----------
-    initialdir : str
-        Initial path of the explorer. Default value set to the
-        directory of this script.
-
-    Returns
-    -------
-    fpath : tuple
-        Tuple containing the absolute path(s) of the selected files.
-    """
-    root = Tk.Tk()
-    fpath = tkFileDialog.askopenfilenames(
-        parent=root,
-        initialdir=initialdir
-    )
-    root.destroy()
-    return fpath
 
 
 def read_log(logpath):

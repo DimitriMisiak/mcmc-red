@@ -100,7 +100,7 @@ explore_plot(time_array, DATA, label='Exp. Pulse\n{}'.format(pc),
 from itertools import count
 gen = count()
 for exp in neat_pulse[1:]:
-    explore_plot(time_array, exp, label='exp '+str(gen.next()),
+    explore_plot(time_array, exp, label='exp '+str(next(gen)),
                  num='test explore_plot')
 
 # defining the chi2 function from the noise psd

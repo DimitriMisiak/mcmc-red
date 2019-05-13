@@ -20,7 +20,6 @@ import scipy.optimize as op
 ### importing the omnitool package functions
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
-from omnitool import explore_plot
 from mcmc import get_mcmc_sampler, mcmc_results, mcmc_sampler
 from models import model_2exp
 from psd import psd
@@ -42,9 +41,9 @@ print ("Generating blob at (mu1, mu2)=({0:.2f}, {1:.2f})"
 
 blob = np.random.normal((mu1, mu2), (sigma1, sigma2), (nsample,2))
 
-print "Checking"
-print "mean =", np.mean(blob, axis=0)
-print "std =", np.std(blob, axis=0)
+print("Checking")
+print("mean =", np.mean(blob, axis=0))
+print("std =", np.std(blob, axis=0))
 
 def chi2(param):
     return chi2_simple(blob, param, (sigma1, sigma2))
@@ -66,4 +65,4 @@ lab = ('$\mu1$','$\mu2$')
 dim = int(logd['dim'])
 xopt, inf, sup = mcmc_results(dim, chain, lnprob, acc, lab)
 
-print xopt, inf, sup
+print(xopt, inf, sup)

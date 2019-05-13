@@ -20,7 +20,6 @@ import scipy.optimize as op
 ### importing the omnitool package functions
 sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
-from omnitool import explore_plot
 from mcmc import get_mcmc_sampler, mcmc_results, mcmc_sampler, mcmc_sampler_multi
 from models import model_2exp
 from psd import psd
@@ -52,13 +51,13 @@ elif SCALE == 'log':
 else:
     raise Exception('SCALE not set properly!')
 
-print "Generating blob at mu={0} and sigma={1}".format(mu, sigma)
+print("Generating blob at mu={0} and sigma={1}".format(mu, sigma))
 
 blob = np.random.normal(mu, sigma, (nsample, ndim))
 
-print "Checking"
-print "mean =", np.mean(blob, axis=0)
-print "std =", np.std(blob, axis=0)
+print("Checking")
+print("mean =", np.mean(blob, axis=0))
+print("std =", np.std(blob, axis=0))
 
 def chi2(param):
     return chi2_simple(blob, param, sigma)
@@ -167,4 +166,4 @@ dim = int(logd['dim'])
 xopt, inf, sup = mcmc_results(dim, chain, lnprob, acc, lab,
                               scale=SCALE, savedir=sampler_path)
 
-print xopt, inf, sup
+print(xopt, inf, sup)

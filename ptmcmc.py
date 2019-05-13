@@ -166,10 +166,10 @@ def ptmcmc_sampler(aux, bounds, nsteps, ntemps, nwalkers=None,
     ntemps = ntemps
 
     pos_temp = list()
-    for k in xrange(ntemps):
+    for k in range(ntemps):
 
         pos = list()
-        for n in xrange(nwalkers):
+        for n in range(nwalkers):
             accept = False
             while not accept:
                 new_pos = [
@@ -203,7 +203,7 @@ def save_ptmcmc_sampler(sampler, bounds, path='mcmc_sampler/autosave'):
             raise
 
     # saving the markov chain
-    with file(os.path.join(path,'chain.dat'), 'w') as outfile:
+    with open(os.path.join(path,'chain.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(sampler.chain.shape))
         for data_temp in sampler.chain:
             for data_slice in data_temp:
@@ -213,7 +213,7 @@ def save_ptmcmc_sampler(sampler, bounds, path='mcmc_sampler/autosave'):
 
     # saving the lnprob
     lnprob = sampler._lnprob
-    with file(os.path.join(path,'lnprob.dat'), 'w') as outfile:
+    with open(os.path.join(path,'lnprob.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
         for data_temp in lnprob:
             np.savetxt(outfile, data_temp)
@@ -221,7 +221,7 @@ def save_ptmcmc_sampler(sampler, bounds, path='mcmc_sampler/autosave'):
 
     # saving the acceptance fraction
     acc = sampler.acceptance_fraction
-    with file(os.path.join(path,'acceptance.dat'), 'w') as outfile:
+    with open(os.path.join(path,'acceptance.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(acc.shape))
         for data_temp in acc:
             np.savetxt(outfile, data_temp)
@@ -303,7 +303,7 @@ def ptmcmc_plots(ntemps, ndim, chain, lnprob, acc, labels):
     cmap = plt.get_cmap('jet')
     cmap = cmap(np.linspace(0., 1., ntemps))
 
-    for k in reversed(xrange(ntemps)):
+    for k in reversed(range(ntemps)):
 
         ch = chain[k]
         ln = lnprob[k]
@@ -339,7 +339,8 @@ def ptmcmc_plots(ntemps, ndim, chain, lnprob, acc, labels):
 
         fig.tight_layout(h_pad=0.0)
 
-        samples = reduce(lambda a,b: np.append(a,b, axis=0), ch)
+#        samples = reduce(lambda a,b: np.append(a,b, axis=0), ch)
+        samples = np.vstack(ch)
 
         best_ind = np.unravel_index(ln.argmax(), ln.shape)
         best_chi2 = -2 * ln[best_ind]
@@ -425,7 +426,7 @@ def ptmcmc_results(ndim, chain, lnprob, acc, labels):
         try:
             burn = np.where(lnk <  lncut)[0][-1] + safe_burn
         except:
-            print 'Could not apply convergence cut properly'
+            print('Could not apply convergence cut properly')
             burn = safe_burn
         burnin_list.append(burn)
 
@@ -462,7 +463,8 @@ def ptmcmc_results(ndim, chain, lnprob, acc, labels):
 
     fig.tight_layout(h_pad=0.0)
 
-    samples = reduce(lambda a,b: np.append(a,b, axis=0), chain_ok_list)
+#    samples = reduce(lambda a,b: np.append(a,b, axis=0), chain_ok_list)
+    samples = np.vstack(chain_ok_list)
 
     best_ind = np.unravel_index(lnprob.argmax(), lnprob.shape)
     best_chi2 = -2 * lnprob[best_ind]
@@ -496,18 +498,18 @@ def ptmcmc_results(ndim, chain, lnprob, acc, labels):
     inf, med, sup = np.percentile(samples, [16, 50, 84], axis=0)
 
     # Analysis end message
-    print "PTMCMC results :"
+    print("PTMCMC results :")
     for n in range(ndim):
-        print labels[n]+'= {:.2e} + {:.2e} - {:.2e}'.format(
+        print(labels[n]+'= {:.2e} + {:.2e} - {:.2e}'.format(
             med[n], sup[n]-med[n], med[n]-inf[n]
-        )
+        ))
     for n in range(ndim):
-        print labels[n]+'\in [{:.3e} , {:.3e}] with best at {:.3e}'.format(
+        print(labels[n]+'\in [{:.3e} , {:.3e}] with best at {:.3e}'.format(
                 inf[n], sup[n], xopt[n]
-        )
+        ))
     if not np.all(np.logical_and(inf<xopt, xopt<sup)):
-        print 'Good luck fixing that :P'
+        print('Good luck fixing that :P')
 
-    print 'Chi2 = {}'.format(best_chi2)
+    print('Chi2 = {}'.format(best_chi2))
 
     return xopt, inf, sup

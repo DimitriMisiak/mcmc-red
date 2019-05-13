@@ -53,7 +53,7 @@ for d in data_list:
 
 # NOISE LEVEL
 noise_list = list()
-for k in xrange(100):
+for k in range(100):
     freq, noi = psd(np.fft.fft(np.random.normal(0, sig, t_range.shape)), fs)
     noise_list.append(noi)
 npsd = np.mean(noise_list, axis=0)

@@ -69,9 +69,9 @@ plt.loglog(freq, psdy, ls='--', label='psd')
 plt.axhline(np.mean(lwelch[1, 1:-1]), ls='--')
 plt.axhline(np.mean(psdy), ls='--')
 
-print np.mean(lwelch[1, 1:])
-print np.mean(psdy)
-print 'Delta =', np.log10(np.mean(lwelch[1, 1:])/np.mean(psdy))
+print(np.mean(lwelch[1, 1:]))
+print(np.mean(psdy))
+print('Delta =', np.log10(np.mean(lwelch[1, 1:])/np.mean(psdy)))
 
 plt.legend()
 plt.grid()
