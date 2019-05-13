@@ -13,7 +13,7 @@ from psd import psd
 import scipy.optimize as op
 import matplotlib.pyplot as plt
 
-def chi2_simple(data_1, data2, err):
+def chi2_simple(data_1, data_2, err):
     """ Simplest chi2 function comparing two sets of datas.
 
     Parameters
@@ -30,7 +30,10 @@ def chi2_simple(data_1, data2, err):
     x2 : float
         Chi2 value.
     """
-    x2 = np.sum( (data_1 - data2)**2 ) / err**2
+    array_1 = np.array(data_1)
+    array_2 = np.array(data_2)
+    err_array = np.array(err)
+    x2 = np.sum( (array_1 - array_2)**2  / err_array**2 )
     return x2
 
 

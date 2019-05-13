@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .general import *
 from .savesys import *
 from .models import *
 from .psd import *
