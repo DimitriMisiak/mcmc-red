@@ -9,9 +9,10 @@ Author:
 """
 
 import numpy as np
-from psd import psd
 import scipy.optimize as op
 import matplotlib.pyplot as plt
+
+from .psd import psd
 
 def chi2_simple(data_1, data_2, err):
     """ Simplest chi2 function comparing two sets of datas.
