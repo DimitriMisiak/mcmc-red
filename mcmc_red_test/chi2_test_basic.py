@@ -13,10 +13,7 @@ from os import path
 import numpy as np
 import matplotlib.pyplot as plt
 
-### importing the module functions
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-from chi2 import chi2_simple, chi2_freq
-from psd import psd
+import mcmc_red as mcr
 
 fs = 1e3
 t_range = np.arange(0, 1, fs**-1)
@@ -33,22 +30,22 @@ labmod = ('mod1', 'mod2', 'mod3')
 darray = {l: funk(a) for l,a in zip(labmod, xmod)}
 
 # TEMPORAL Chi2
-d_sx2 = {l: chi2_simple(data, darray[l], err=sig) for l in labmod}
+d_sx2 = {l: mcr.chi2_simple(data, darray[l], err=sig) for l in labmod}
 
 # FREQ Chi2 with fft, psd, etc...
 dfft = {l: np.fft.fft(darray[l]) for l in labmod}
 
 fftdata = np.fft.fft(data)
-freq, dpsd = psd(fftdata, fs)
+freq, dpsd = mcr.psd(fftdata, fs)
 
 noise_list = list()
 for k in range(100):
-    freq, noi = psd(np.fft.fft(np.random.normal(0, sig, t_range.shape)), fs)
+    freq, noi = mcr.psd(np.fft.fft(np.random.normal(0, sig, t_range.shape)), fs)
     noise_list.append(noi)
 
 npsd = np.mean(noise_list, axis=0)
 
-d_fx2 = {l: chi2_freq(fftdata, dfft[l], npsd, fs) for l in labmod}
+d_fx2 = {l: mcr.chi2_freq(fftdata, dfft[l], npsd, fs) for l in labmod}
 
 ########## PLOT #############
 plt.close('all')
@@ -58,7 +55,7 @@ plt.figure()
 plt.title('1000 pts _ Temporal Chi2')
 plt.plot(
     t_range, data, lw=1.,
-    label='data, $\chi^2=${:.2f}'.format(chi2_simple(data, data, err=sig))
+    label='data, $\chi^2=${:.2f}'.format(mcr.chi2_simple(data, data, err=sig))
 )
 
 for l in labmod:
@@ -72,10 +69,10 @@ plt.title('500 freqs _ Frequency Chi2')
 plt.grid(b=True)
 plt.loglog(
     freq, dpsd,
-    label='data $\chi^2=${:.2f}'.format(chi2_freq(fftdata, fftdata, npsd, fs))
+    label='data $\chi^2=${:.2f}'.format(mcr.chi2_freq(fftdata, fftdata, npsd, fs))
 )
 for l in labmod:
-    freq, PSD = psd(dfft[l], fs)
+    freq, PSD = mcr.psd(dfft[l], fs)
     plt.loglog(freq, PSD, label=l+' $\chi^2=${:.2f}'.format(d_fx2[l]))
 plt.loglog(freq, npsd, label='noise')
 plt.legend()

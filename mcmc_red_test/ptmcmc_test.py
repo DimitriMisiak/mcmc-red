@@ -14,13 +14,7 @@ import scipy.signal as sgl
 import sys
 from os import path
 
-### importing the omnitool package functions
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-
-#from general import explore_plot
-from ptmcmc import (get_ptmcmc_sampler, ptmcmc_results, ptmcmc_sampler,
-                    chi2, save_ptmcmc_sampler, ptmcmc_plots)
-import models as md
+import mcmc_red as mcr
 
 def explore_plot(x_data, y_data,
                  num='EXPLORE PLOT', figsize=(11,7),
@@ -80,7 +74,7 @@ time_array = np.arange(0, 1, 1e-3)
 
 # model function to study
 #funk = lambda p: md.model_1exp(*p, t0=0.5)
-funk = lambda p: md.model_2exp(*p, t0=0.5)
+funk = lambda p: mcr.model_2exp(*p, t0=0.5)
 
 # XXX Creating the fake data.
 # Need to noise level, and the systematic error
@@ -108,7 +102,7 @@ freq, psd = sgl.welch(noise, fs=1e3, window='boxcar', nperseg=1000)
 psd = psd[1:]
 def aux(f):
     f = np.power(10, f)
-    x2 = chi2(time_array, funk(f)(time_array), DATA, noise=psd)[0]
+    x2 = mcr.chi2(time_array, funk(f)(time_array), DATA, noise=psd)[0]
     return x2
 
 # save directory
@@ -120,24 +114,24 @@ sampler_path = 'ptmcmc_sampler/autosave_2'
 bounds = ((-5.5, -3.5), (-5.5, -3.5), (-2.5, -0.5), (-2.5, -0.5), (-3, -2))
 #    bounds = ((-6, 0), (-6, 0), (-6, 0), (-6, 0), (-6, 0))
 condi = lambda p: p[2] < p[3]
-sampler = ptmcmc_sampler(aux, bounds, nsteps=2000, ntemps=5, condi=condi)
+sampler = mcr.ptmcmc_sampler(aux, bounds, nsteps=2000, ntemps=5, condi=condi)
 #
 #    # save sampler data
-save_ptmcmc_sampler(sampler, bounds, path = sampler_path)
+mcr.save_ptmcmc_sampler(sampler, bounds, path = sampler_path)
 
 
 # XXX analysing the ptmcmc results
 #    # loading the mcmc results
-logd, chain, lnprob, acc = get_ptmcmc_sampler(sampler_path)
+logd, chain, lnprob, acc = mcr.get_ptmcmc_sampler(sampler_path)
 #
 #    LAB = ('$log\ a$', '$log\ t$', '$log\ s$')
 LAB = ('$log\ a1$', '$log\ a2$', '$log\ t1$', '$log\ t2$', '$log\ s$')
 dim = int(logd['dim'])
 ntemps = int(logd['ntemps'])
 
-ptmcmc_plots(ntemps, dim, chain, lnprob, acc, LAB)
+mcr.ptmcmc_plots(ntemps, dim, chain, lnprob, acc, LAB)
 
-xopt, inf, sup = ptmcmc_results(dim, chain, lnprob, acc, LAB)
+xopt, inf, sup = mcr.ptmcmc_results(dim, chain, lnprob, acc, LAB)
 
 popt, pinf, psup = map(lambda x: np.power(10,x),
                        (xopt, inf, sup))

@@ -14,13 +14,7 @@ import numpy as np
 import scipy.signal as sgl
 import matplotlib.pyplot as plt
 
-### importing the omnitool package functions
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-
-from psd import psd
-#from general import explore_plot
-#from mcmc import get_sampler, mcmc_results, mcmc_sampler, chi2
-#import models as md
+import mcmc_red as mcr
 
 plt.close('all')
 
@@ -55,7 +49,7 @@ plt.grid()
 
 fft = np.fft.fft(lnoise)
 
-freqy, psdy = psd(fft, fs)
+freqy, psdy = mcr.psd(fft, fs)
 
 lwelch = np.array(sgl.welch(lnoise, fs, 'boxcar', nperseg=len(noise)))
 

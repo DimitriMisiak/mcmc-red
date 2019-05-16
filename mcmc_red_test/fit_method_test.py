@@ -17,15 +17,7 @@ import scipy.signal as sgl
 from os import path
 import scipy.optimize as op
 
-### importing the omnitool package functions
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-
-from omnitool import explore_plot
-from mcmc import get_mcmc_sampler, mcmc_results, mcmc_sampler
-from ptmcmc import get_ptmcmc_sampler, ptmcmc_results, ptmcmc_sampler, ptmcmc_plots, save_ptmcmc_sampler
-from models import model_2exp
-from psd import psd
-from chi2 import chi2_freq, opt_chi2_freq
+import mcmc_red as mcr
 
 # close all plots
 plt.close('all')
@@ -35,7 +27,7 @@ fs = 1e3
 t_range = np.arange(0, 1, fs**-1)
 
 # model function to study
-funk = lambda t, p: model_2exp(*p, t0=t)(t_range)
+funk = lambda t, p: mcr.model_2exp(*p, t0=t)(t_range)
 
 # DATA
 sig = 1e-6
@@ -48,13 +40,13 @@ data_list = (data1, data2, data3)
 
 # plotting experimental data
 for d in data_list:
-    explore_plot(t_range, d, label='Exp. Pulse\n{}'.format(pc),
+    mcr.explore_plot(t_range, d, label='Exp. Pulse\n{}'.format(pc),
                  num='test explore_plot')
 
 # NOISE LEVEL
 noise_list = list()
 for k in range(100):
-    freq, noi = psd(np.fft.fft(np.random.normal(0, sig, t_range.shape)), fs)
+    freq, noi = mcr.psd(np.fft.fft(np.random.normal(0, sig, t_range.shape)), fs)
     noise_list.append(noi)
 npsd = np.mean(noise_list, axis=0)
 
@@ -67,18 +59,18 @@ pinit =(2e-4, 0.1e-5, 10e-2, 3e-1, 1e-3)
 mod = funk(.5, pinit)
 
 # plotting experimental data
-explore_plot(t_range, mod, label='Init. Mod. Pulse\n{}'.format(pinit),
+mcr.explore_plot(t_range, mod, label='Init. Mod. Pulse\n{}'.format(pinit),
              num='test explore_plot', alpha=0.2)
 
 # chi2 freq init
 fftdata = np.fft.fft(data1)
 fftmod = np.fft.fft(mod)
-x2 = chi2_freq(fftdata, fftmod, npsd, fs)
+x2 = mcr.chi2_freq(fftdata, fftmod, npsd, fs)
 
 def aux_mini(p):
     p = np.power(10, p)
     fftmod = np.fft.fft(funk(0.5, p))
-    x2 = chi2_freq(fftdata, fftmod, npsd, fs)
+    x2 = mcr.chi2_freq(fftdata, fftmod, npsd, fs)
     return x2
 
 #result = op.minimize(aux_mini, pinit, method='nelder-mead')
@@ -126,15 +118,15 @@ sampler_path = 'mcmc_sampler/autosave'
 
 # running the mcmc analysis
 bounds = ((-4.5, 3.5), (-5.5, -4.5), (-2.5, -1.5), (-1.5, -0.5), (-3, -2))
-sampler = mcmc_sampler(aux_mini, bounds, nsteps=1000, path=sampler_path)
+sampler = mcr.mcmc_sampler(aux_mini, bounds, nsteps=1000, path=sampler_path)
 
 #    # loading the mcmc results
-logd, chain, lnprob, acc = get_mcmc_sampler(sampler_path)
+logd, chain, lnprob, acc = mcr.get_mcmc_sampler(sampler_path)
 
 #    LAB = ('$log\ a$', '$log\ t$', '$log\ s$')
 LAB = ('$log\ a1$', '$log\ a2$', '$log\ t1$', '$log\ t2$', '$log\ s$')
 dim = int(logd['dim'])
-xopt, inf, sup = mcmc_results(dim, chain, lnprob, acc, LAB)
+xopt, inf, sup = mcr.mcmc_results(dim, chain, lnprob, acc, LAB)
 
 popt, pinf, psup = map(lambda x: np.power(10,x),
                        (xopt, inf, sup))
@@ -174,5 +166,5 @@ popt, pinf, psup = map(lambda x: np.power(10,x),
 MOD = funk(0.5, popt)
 MOD_lab = 'param= {}'.format(popt)
 
-explore_plot(t_range, MOD,
+mcr.explore_plot(t_range, MOD,
              num='test explore_plot', label=MOD_lab)
