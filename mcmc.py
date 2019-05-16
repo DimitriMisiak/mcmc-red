@@ -25,7 +25,7 @@ from savesys import savetxt, loadtxt
 
 def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
                  path='mcmc_sampler/autosave', save=True,
-                 condi=None):
+                 condi=None, pos=None):
     """ MCMC Analysis routine. Log scale seach in parameter space.
 
     Parameters
@@ -91,16 +91,20 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
     if nwalkers == None:
         nwalkers = 10 * ndim
 
-    # walkers are uniformly spread in the parameter space
-    pos = list()
-    for n in range(nwalkers):
-        accept = False
-        while not accept:
-            new_pos = [
-                np.random.uniform(low=l, high=h) for l,h in zip(binf, bsup)
-            ]
-            accept = condi(new_pos)
-        pos.append(new_pos)
+    if pos:
+        assert len(pos) = nwalkers
+        
+    else:
+        # walkers are uniformly spread in the parameter space
+        pos = list()
+        for n in range(nwalkers):
+            accept = False
+            while not accept:
+                new_pos = [
+                    np.random.uniform(low=l, high=h) for l,h in zip(binf, bsup)
+                ]
+                accept = condi(new_pos)
+            pos.append(new_pos)
 
     # MCMC analysis
     sampler = emcee.EnsembleSampler(nwalkers, ndim, loglike)
