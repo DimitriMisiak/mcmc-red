@@ -91,7 +91,7 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
     if nwalkers == None:
         nwalkers = 10 * ndim
 
-    if pos:
+    if pos is not None:
         assert len(pos) == nwalkers
     else:
         # walkers are uniformly spread in the parameter space
