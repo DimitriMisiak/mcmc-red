@@ -25,7 +25,7 @@ from savesys import savetxt, loadtxt
 
 def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
                  path='mcmc_sampler/autosave', save=True,
-                 condi=None, pos=None):
+                 condi=None, pos=None, **kwargs):
     """ MCMC Analysis routine. Log scale seach in parameter space.
 
     Parameters
@@ -43,6 +43,9 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
         the number of parameters.
     savename : str, optional
         Path the save directory
+        
+    kwargs parameters passed to emcee.Ensemble.Sampler.run_mcmc
+    
     Returns
     -------
     sampler : emcee.ensemble.EnsembleSampler
@@ -107,7 +110,7 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
 
     # MCMC analysis
     sampler = emcee.EnsembleSampler(nwalkers, ndim, loglike)
-    sampler.run_mcmc(pos, nsteps, rstate0=np.random.get_state())
+    sampler.run_mcmc(pos, nsteps, rstate0=np.random.get_state(), **kwargs)
 
 
     # saving the markov chain
@@ -118,7 +121,7 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
             outfile.write('# Next walker\n')
 
     # saving the lnprob
-    lnprob = sampler._lnprob
+    lnprob = sampler.lnprobability
     with open(os.path.join(path,'lnprob.dat'), 'w') as outfile:
         outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
         np.savetxt(outfile, lnprob)
@@ -138,12 +141,11 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
         source = os.getcwd()
 
     values = (source, bounds,
-              sampler.dim, sampler.iterations, sampler.k)
+              sampler.ndim, sampler.iteration, sampler.nwalkers)
 
     savetxt(entries, values, fpath=os.path.join(path ,'log.dat'))
 
     return sampler
-
 
 def mcmc_sampler_multi(lnpostfn, bounds, nsteps, nwalkers=None,
                  path='mcmc_sampler/autosave', save=True,
@@ -388,7 +390,7 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
 #    ax[-1].axhline(np.power(10,lnlncut), color='r')
 
     # convergence cut with best prob
-    lncut = 1.1 * lnprob.max()
+    lncut = 1.5 * lnprob.max()
     burnin_list = list()
     for lnk in lnprob:
         try:
@@ -451,7 +453,7 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
     ax[0].set_ylabel('p0')
 
     for c in chain[:,:,0]:
-        funk = emcee.autocorr.function(c)
+        funk = emcee.autocorr.function_1d(c)
         ax[0].plot(c)
         ax[1].plot(funk)
 

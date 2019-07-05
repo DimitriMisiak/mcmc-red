@@ -1,18 +1,18 @@
-2019-05-16 11:37
+2019-07-04 14:08
 
 
 source =
-/home/misiak/projects/mcmc_red/test/nd_gaussian.py
+/home/misiak/projects/mcmc_red/tests/1d_gaussian_manual_mode.py
 
 bounds =
-[(-20, 20), (-20, 20), (-20, 20), (-20, 20), (-20, 20), (-20, 20), (-20, 20)]
+[(-20, 20)]
 
 dim =
-7
+1
 
 iterations =
-1000
+10000
 
 nwalkers =
-70
+10
 
