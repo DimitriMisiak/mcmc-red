@@ -285,6 +285,8 @@ def get_mcmc_sampler(sdir):
     lnprob : ndarray
         Array of shape (nwalkers, nsteps). Contains the log probability
         of all walkers for each iterations.
+    acc : ndarray
+        Acceptance array.
     """
     # log chain, lnprob file path
     logpath = os.path.join(sdir, 'log.dat')
@@ -346,8 +348,8 @@ def mcmc_results(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None)
     chain = np.delete(chain, ind, axis=0)
     lnprob = np.delete(lnprob, ind, axis=0)
 
-    print('shape chain:'), chain.shape
-    print('shape lnprob:'), lnprob.shape
+    print('shape chain: {}'.format(chain.shape) )
+    print('shape lnprob: {}'.format(lnprob.shape) )
 
     fig_acceptance = plt.figure('ACCEPTANCE FRACTION')
     plt.bar(np.arange(acc.shape[0]), acc)

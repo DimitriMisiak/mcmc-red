@@ -1,0 +1,176 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Handy MCMC scripts.
+
+Test for the different fit method (mcmc, ptmcmc, minimizer).
+
+Author:
+    Dimitri Misiak (misiak@ipnl.in2p3.fr)
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import sys
+import scipy.signal as sgl
+#from os import path
+import os
+import scipy.optimize as op
+
+#import mcmc_red as mcr
+from mcmc_red import chi2_simple, savetxt
+
+# close all plots
+plt.close('all')
+
+nsample = 100
+mu, sigma = 1., 1.
+#mu = np.random.uniform(-10, 10)
+#sigma = np.random.uniform(0, 10)
+
+print("Generating blob at mu={0:.2f} and sigma={1:.2f}".format(mu, sigma))
+blob = np.random.normal(mu, sigma, nsample)
+
+def chi2(param):
+    return chi2_simple(blob, param, sigma)
+
+# XXX MCMC
+# save directory
+sampler_path = 'mcmc_sampler/autosave'
+
+# running the mcmc analysis
+bounds = ((-20, 20),)
+
+import emcee
+
+#sampler = mcr.mcmc_sampler(chi2, bounds, nsteps=1000, path=sampler_path)
+
+# =============================================================================
+# STARTING OVERDRIVE
+# =============================================================================
+
+aux = chi2
+nsteps = 1000
+path = sampler_path
+condi = None
+nwalkers = None
+pos = None
+
+try:
+    os.makedirs(path)
+except OSError:
+    if not os.path.isdir(path):
+        raise
+
+# extracts the sup bounds and the inf bounds
+bounds = list(bounds)
+binf = list()
+bsup = list()
+for b in bounds:
+    inf, sup = b
+    binf.append(inf)
+    bsup.append(sup)
+binf = np.array(binf)
+bsup = np.array(bsup)
+
+# additionnal constrain as function of the parameters
+if condi == None:
+    condi = lambda p: True
+
+# Loglikelihood function taking into accounts the bounds
+def loglike(x):
+    """ Loglikelihood being -chi2/2.
+    Take into account the bounds.
+    """
+    cinf = np.sum(x<binf)
+    csup = np.sum(x>bsup)
+    if cinf == 0 and csup == 0 and condi(x) == True:
+#            return -0.5*aux(np.power(10,x))
+        return -0.5*aux(x)
+    else:
+        return -np.inf
+
+# number of parameters/dimensions
+ndim = len(bounds)
+
+# default nwalkers
+if nwalkers == None:
+    nwalkers = 10 * ndim
+
+if pos is not None:
+    assert len(pos) == nwalkers
+else:
+    # walkers are uniformly spread in the parameter space
+    pos = list()
+    for n in range(nwalkers):
+        accept = False
+        while not accept:
+            new_pos = [
+                np.random.uniform(low=l, high=h) for l,h in zip(binf, bsup)
+            ]
+            accept = condi(new_pos)
+        pos.append(new_pos)
+
+# MCMC analysis
+filename = "1d_gaussian.h5"
+backend = emcee.backends.HDFBackend(filename)
+backend.reset(nwalkers, ndim)
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, loglike, backend=backend)
+
+sampler.run_mcmc(pos, nsteps, rstate0=np.random.get_state(), progress=True)
+
+#i = 0
+#for S in sampler.sample(pos, nsteps, rstate0=np.random.get_state(), progress=True):
+#    print(i)
+#    i += 1
+#    
+# saving the markov chain
+with open(os.path.join(path,'chain.dat'), 'w') as outfile:
+    outfile.write('# Array shape: {0}\n'.format(sampler.chain.shape))
+    for data_slice in sampler.chain:
+        np.savetxt(outfile, data_slice)
+        outfile.write('# Next walker\n')
+
+# saving the lnprob
+lnprob = sampler.lnprobability
+with open(os.path.join(path,'lnprob.dat'), 'w') as outfile:
+    outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
+    np.savetxt(outfile, lnprob)
+
+# saving the acceptance fraction
+acc = sampler.acceptance_fraction
+with open(os.path.join(path,'acceptance.dat'), 'w') as outfile:
+    outfile.write('# Array shape: {0}\n'.format(acc.shape))
+    np.savetxt(outfile, acc)
+
+entries = ('source', 'bounds',
+           'dim', 'iterations', 'nwalkers')
+
+source = os.getcwd()
+
+values = (source, bounds,
+          sampler.ndim, sampler.iteration, sampler.nwalkers)
+
+savetxt(entries, values, fpath=os.path.join(path ,'log.dat'))
+
+
+
+
+
+
+
+# =============================================================================
+# PLOTTING AND LOADING THE RESULTS
+# =============================================================================
+##    # loading the mcmc results
+#logd, chain, lnprob, acc = mcr.get_mcmc_sampler(sampler_path)
+#
+##    LAB = ('$log\ a$', '$log\ t$', '$log\ s$')
+##LAB = ('$log\ a1$', '$log\ a2$', '$log\ t1$', '$log\ t2$', '$log\ s$')
+#lab = ('$\mu$',)
+#dim = int(logd['dim'])
+#xopt, inf, sup = mcr.mcmc_results(dim, chain, lnprob, acc, lab)
+#
+#print(xopt, inf, sup)

@@ -39,7 +39,8 @@ sampler_path = 'mcmc_sampler/autosave'
 
 # running the mcmc analysis
 bounds = ((-20, 20),)
-sampler = mcr.mcmc_sampler(chi2, bounds, nsteps=1000, path=sampler_path)
+sampler = mcr.mcmc_sampler(chi2, bounds, nsteps=1000, path=sampler_path, 
+                           progress=True)
 
 #    # loading the mcmc results
 logd, chain, lnprob, acc = mcr.get_mcmc_sampler(sampler_path)
