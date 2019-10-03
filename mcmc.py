@@ -20,8 +20,7 @@ import __main__
 import sys
 from os import path
 sys.path.append( path.dirname( path.abspath(__file__) ) )
-from savesys import savetxt, loadtxt
-
+#from savesys import savetxt, loadtxt
 
 def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
                  path='mcmc_sampler/autosave', save=True,
@@ -142,125 +141,6 @@ def mcmc_sampler(aux, bounds, nsteps, nwalkers=None,
 
     values = (source, bounds,
               sampler.ndim, sampler.iteration, sampler.nwalkers)
-
-    savetxt(entries, values, fpath=os.path.join(path ,'log.dat'))
-
-    return sampler
-
-def mcmc_sampler_multi(lnpostfn, bounds, nsteps, nwalkers=None,
-                 path='mcmc_sampler/autosave', save=True,
-                 condi=None, threads=1, scale='linear'):
-    """ MCMC Analysis routine. Log scale seach in parameter space.
-
-    Parameters
-    ----------
-    lnpostfn : function
-        Loglikelihood of Minimized function. See emcee module for more info.
-    bounds: array_like of tuple of 2 floats
-        Starting parameter set for MCMC analysis.
-    nsteps : int
-        Number of steps.
-    nwalkers : None or int, optional
-        Numbers of walkers. Should not be inferior to 2 times
-        the number of parameters. By default, set to 10 times
-        the number of parameters.
-    savename : str, optional
-        Path the save directory
-    threads : int
-        Number of threads for the multiprocessing.
-    scale : str, optional
-        Scale for the spreading of the initial markov chains.
-        Can be either 'linear' or 'log'.
-
-    Returns
-    -------
-    sampler : emcee.ensemble.EnsembleSampler
-        Object manipulated by the mcmc. Has several class attributes which
-        contain the Markov chain, the lnprob list, and other characteristics
-        of the mcmc analysis.
-    """
-    try:
-        os.makedirs(path)
-    except OSError:
-        if not os.path.isdir(path):
-            raise
-
-    # extracts the sup bounds and the inf bounds
-    bounds = list(bounds)
-    binf = list()
-    bsup = list()
-    for b in bounds:
-        inf, sup = b
-        binf.append(inf)
-        bsup.append(sup)
-    binf = np.array(binf)
-    bsup = np.array(bsup)
-
-    # additionnal constrain as function of the parameters
-    if condi == None:
-        condi = lambda p: True
-
-    # number of parameters/dimensions
-    ndim = len(bounds)
-
-    # default nwalkers
-    if nwalkers == None:
-        nwalkers = 10 * ndim
-
-    # walkers are uniformly spread in the parameter space
-    # according to the search scale
-    pos = list()
-    for n in range(nwalkers):
-        accept = False
-        while not accept:
-            if scale == 'linear':
-                new_pos = [
-                    np.random.uniform(low=l, high=h) for l,h in zip(binf, bsup)
-                ]
-                accept = condi(new_pos)
-            elif scale == 'log':
-                new_pos = [
-                    10**np.random.uniform(low=l, high=h) for l,h in zip(np.log10(binf), np.log10(bsup))
-                ]
-                accept = condi(new_pos)
-            else:
-                raise Exception('Scale parameter not set correctly. Should be \'linear\' or \'log\'')
-        pos.append(new_pos)
-
-    # MCMC analysis
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnpostfn, threads=threads)
-    sampler.run_mcmc(pos, nsteps, rstate0=np.random.get_state())
-
-
-    # saving the markov chain
-    with open(os.path.join(path,'chain.dat'), 'w') as outfile:
-        outfile.write('# Array shape: {0}\n'.format(sampler.chain.shape))
-        for data_slice in sampler.chain:
-            np.savetxt(outfile, data_slice)
-            outfile.write('# Next walker\n')
-
-    # saving the lnprob
-    lnprob = sampler._lnprob
-    with open(os.path.join(path,'lnprob.dat'), 'w') as outfile:
-        outfile.write('# Array shape: {0}\n'.format(lnprob.shape))
-        np.savetxt(outfile, lnprob)
-
-    # saving the acceptance fraction
-    acc = sampler.acceptance_fraction
-    with open(os.path.join(path,'acceptance.dat'), 'w') as outfile:
-        outfile.write('# Array shape: {0}\n'.format(acc.shape))
-        np.savetxt(outfile, acc)
-
-    entries = ('source', 'bounds',
-               'dim', 'iterations', 'nwalkers')
-
-    try:
-        source = __main__.__file__
-    except:
-        source = os.getcwd()
-
-    values = (source, bounds,
-              sampler.dim, sampler.iterations, sampler.k)
 
     savetxt(entries, values, fpath=os.path.join(path ,'log.dat'))
 

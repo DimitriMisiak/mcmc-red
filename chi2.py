@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from .psd import psd, psd_from_fft2
 
+
 def chi2_simple(data_1, data_2, err):
     """ Simplest chi2 function comparing two sets of datas.
 
@@ -67,47 +68,6 @@ def chi2_freq(fft_1, fft_2, psd_err, fs):
     x2 = np.sum( psd_data / np.array(psd_err) )
 
     return x2
-
-
-def opt_chi2_freq(fft_data, model_funk, psd_err, fs, bounds, debug=False):
-    """
-
-    Return:
-    =======
-    x2 : float
-        Chi2 value with the optimal free parameter value.
-    xopt : float
-        Optimal free parameter value.
-    """
-    def aux(x):
-        fft_model = np.fft.fft(model_funk(x))
-        x2 = chi2_freq(fft_data, fft_model, psd_err, fs)
-        return x2
-
-    x0 = np.mean(bounds)
-    result = op.minimize(aux, x0, method='nelder-mead')
-    x2 = result.fun
-    xopt = result.x[0]
-
-    if debug == True:
-
-        comm = np.linspace(bounds[0], bounds[1], 100)
-#        loot = map(aux, comm)
-        loot = [aux(c) for c in comm]
-        
-        xmin = comm[np.argmin(loot)]
-
-        plt.figure('debug stream_chi2')
-        scatter = plt.plot(comm, loot, ls='none', marker='+',
-                           label='{0:.3f}/{1:.6f}'.format(xmin, xopt))
-        plt.axvline(xmin, lw=1.0, color=scatter[0].get_color())
-        plt.ylabel('$\chi^2$')
-        plt.xlabel('Model Offset $x$')
-        plt.grid(b=True)
-        plt.legend(title='Crude/Mini')
-        plt.tight_layout()
-
-    return x2, xopt
 
 
 def opt_chi2_amp(fft_data, fft_template, psd_err, fs):

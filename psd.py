@@ -132,7 +132,10 @@ def inv_psd(psd, fs, angle=None, mean=0):
 
 
 def psd_from_fft2(fft2, fs, weight=None):
+    """ Same as psd, except with fft**2.
     
+    Return freq_array and psd_array.    
+    """
     nfft = fft2.shape[0]
     if weight == None:
         s1 = nfft
